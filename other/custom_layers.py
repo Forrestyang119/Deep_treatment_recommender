@@ -6,77 +6,6 @@ from keras.layers import merge, Multiply, Add, Activation, dot, concatenate
 from keras import backend as K
 
 
-def attention_layer(config, rnn1):
-    input_dim = int(rnn1.shape[2])
-    attention_tensors = []
-    # attention_output = rnn1[: 1, :]
-    BK_WIN = config['attention_win']
-    for i in range(1, config['maxlen'] + 1, 1):
-        dense_1 = Dense(BK_WIN)
-        if i < BK_WIN:
-            rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-            attr = Permute((2,1))(rnn_slice)
-            a_1 = Reshape((input_dim, i))(attr)
-            a_2 = Dense(i, activation='softmax')(a_1)
-            a_probs = Permute((2,1))(a_2)
-            attention_mul = merge([a_probs, rnn_slice], mode='mul')
-            # attention_mul = Lambda(lambda x: x[:, i-1:i, :])(attention_mul)
-        else:
-            rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
-            attr = Permute((2,1))(rnn_slice)
-            a_1 = Reshape((input_dim, BK_WIN))(attr)
-            a_2 = Dense(BK_WIN, activation='softmax')(a_1)
-            a_probs = Permute((2,1))(a_2)
-            attention_mul = merge([a_probs, rnn_slice], mode='mul')
-            # attention_mul = Lambda(lambda x: x[:, BK_WIN-1 :, :])(attention_mul)
-        attention_mul = Lambda(lambda x: K.sum(x, axis=1, keepdims=True))(attention_mul)
-        attention_tensors.append(attention_mul)
-
-    attention_output = keras.layers.concatenate(attention_tensors, axis = -2)
-
-    return attention_output
-# attention layer with window size = BKWIN (share paramater)
-def attention_layer_share(config, rnn1):
-    input_dim = int(rnn1.shape[2])
-    batch_size = config['batch_size']
-    attention_tensors = []
-    # attention_output = rnn1[: 1, :]
-    BK_WIN = config['attention_win']
-    dense_1 = Dense(BK_WIN, activation='softmax', name='attention')
-    permute_1 = Permute((2,1))
-    reshape_1 = Reshape((input_dim, BK_WIN))
-    for i in range(1, config['maxlen'] + 1, 1):
-        if i < BK_WIN - 1:
-            rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-            rnn_head = Lambda(lambda x: x[:, 0:1, :])(rnn1)
-            rnn_cct = concatenate([rnn_head for i in range(BK_WIN - i)], axis = -2)
-            rnn_slice = concatenate([rnn_cct, rnn_slice], axis=-2)
-            # attention_mul = merge([a_probs, rnn_slice], mode='mul')
-            # attention_mul = Lambda(lambda x: x[:, BK_WIN-1 :, :])(attention_mul)
-        elif i == BK_WIN-1:
-            rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-            rnn_head = Lambda(lambda x: x[:, 0:1, :])(rnn1)
-            rnn_cct = rnn_head
-            rnn_slice = concatenate([rnn_cct, rnn_slice], axis=-2)
-            # attention_mul = merge([a_probs, rnn_slice], mode='mul')
-            # attention_mul = Lambda(lambda x: x[:, BK_WIN-1 :, :])(attention_mul)
-        else:
-            rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
-
-        attr = permute_1(rnn_slice)
-        a_1 = reshape_1(attr)
-        a_2 = dense_1(a_1)
-        a_probs = permute_1(a_2)
-
-        attention_mul = merge([a_probs, rnn_slice], mode='mul')
-        # attention_mul = Lambda(lambda x: x[:, BK_WIN-1 :, :])(attention_mul)
-        attention_mul = Lambda(lambda x: K.sum(x, axis=1, keepdims=True))(attention_mul)
-        attention_tensors.append(attention_mul)
-
-    attention_output = keras.layers.concatenate(attention_tensors, axis = -2)
-
-    return attention_output
-
 # attention layer with window size = BKWIN (share paramater)
 # http://anthology.aclweb.org/P16-2034
 def attention_layer_ACL_simple(config, rnn1):
@@ -103,16 +32,8 @@ def attention_layer_ACL_simple(config, rnn1):
             rnn_slice = concatenate([rnn_cct, rnn_slice], axis=-2)
         else:
             rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
-        # if i == 0:
-        #     rnn_slice = Lambda(lambda x : x[:, 0:1, :])(rnn1)
-        # else:
-        #     rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-        # rnn_slice: batch_size * BK_WIN * hidden_size
         a_1 = act(rnn_slice)
 
-
-
-        # a_1 = Dropout(0.4)(a_1)
         # a2: batch * timestep * 1
         a_2 = dense_1(a_1)
         alpha = permute_1(a_2)
@@ -194,15 +115,7 @@ def attention_context_gen_k(config, rnn1):
         else:
             rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
             h_t = Lambda(lambda x: x[:, i:i+1, :])(rnn1)
-        
-        # if i == 0:
-        #     rnn_slice = Lambda(lambda x : x[:, 0:1, :])(rnn1)
-        #     h_t = Lambda(lambda x: x[:, i:i+1, :])(rnn1)
-        # else:
-        #     rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-        #     h_t = Lambda(lambda x: x[:, i:i+1, :])(rnn1)
-
-            
+                    
         dense_1 = Dense(hidden_size, use_bias=False)
         dense_2 = Dense(hidden_size, use_bias=False, activation='tanh')
         
@@ -237,17 +150,8 @@ def attention_context_concat_k(config, rnn1):
         else:
             rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
 
-        # if i == 0:
-        #     rnn_slice = Lambda(lambda x : x[:, 0:1, :])(rnn1)
-        #     BK_WIN = 1
-        # else:
-        #     rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-        #     BK_WIN = i
-
 
         h_t = Lambda(lambda x: x[:, i:i+1, :])(rnn1)
-        # h_t = Reshape((1, hidden_size))(h_t)
-        # rnn_slice = concat_states(config, h_t,rnn_slice, BK_WIN)
         rnn_slice = concat_states(config, h_t,rnn_slice, BK_WIN)
 
         dense_0 = Dense(hidden_size, use_bias=False, activation='tanh')
@@ -265,7 +169,7 @@ def attention_context_concat_k(config, rnn1):
 
 
 def attention_3d_bocks(config, time_step, hidden_states, h_t, dense_1, dense_2):
-    # dense_1 = Dense(BK_WIN, use_bias=False)
+    # dense_1 = Dense(hidden_size, use_bias=False)
     # dense_2 = Dense(hidden_size, use_bias=False, activation='tanh')
 
     # hidden_size = config['hidden_vector']
