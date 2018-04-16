@@ -81,14 +81,19 @@ class AttentionRNN:
 
 
     def embedding_layer(self, main_input):
+        # Pre-trained act-vec layer
         if self.embed is 'ACT2VEC_EMBED':
             (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
             embed_matrix = act2vec(X, self.word_index, self.embedding_dim, self.act2vec_win)
             embedding_output = Embedding(self.num_words, self.embedding_dim, weights=[embed_matrix], 
                                           input_length=self.maxlen, mask_zero=True)(main_input)
+        
+        # Word Embedding layer
         elif self.embed is 'EMBED':
             embedding_output = Embedding(self.num_words, self.embedding_dim,
                                    input_length=self.maxlen, mask_zero=True)(main_input)
+        
+        # One hot layer
         elif self.embed is 'HOT':
             self.X_train = vec(self.X_train, self.word_index, 1, 0, self.maxlen)
             self.X_val = vec(self.X_val, self.word_index, 1, 0, self.maxlen) 
@@ -120,17 +125,22 @@ class AttentionRNN:
 
         # attention layer
         attention_output, self.alphas = attention_selector(self.config, rnn1)       
+
         # output layer
         output = TimeDistributed(Dense(num_words, activation='softmax'))(attention_output)
-        # output  = Multiply()([output, mask_input])
+
+
         model = Model(inputs=[main_input, mask_input], outputs=output)
 
         return model
 
 
     def model_evaluation(self, model):
+
+        # Get y_predict
         y_proba = model.predict([self.X_test, self.mask_test])
         self.save_predict_result(self.y_test, y_proba, self.word_index)
+
 
         precision, recall, acc, top_k1, top_k2, top_k3 = get_all_scores(self.y_test, y_proba, self.config)
         score, *_  = model.evaluate([self.X_test, self.mask_test], self.y_test)
@@ -146,83 +156,6 @@ class AttentionRNN:
         write_result_to_file(result_file, [score, precision, recall, acc, top_k1, top_k2, top_k3], int(sys.argv[1]), self.config)
         print()
 
-    def cross_validation(self):
-        X_all = np.concatenate([self.X_train, self.X_val, self.X_test], axis=0)
-        y_all = np.concatenate([self.y_train, self.y_val, self.y_test], axis=0)
-        mask_all = np.concatenate([self.mask_train, self.mask_val, self.mask_test], axis=0)
-        score_sum, precision_sum, recall_sum, acc_sum, top_3_sum = 0,0,0,0,0
-        fold_num = 5
-        test_size = int(np.ceil(X_all.shape[0]/fold_num))
-        for i in range(fold_num):
-            test_start, test_end = (i, i+test_size) if i+test_size<X_all.shape[0] else (i,X_all.shape[0])
-            X_test = X_all[test_start:test_end]
-            y_test = y_all[test_start:test_end]
-            mask_test = mask_all[test_start:test_end]
-            X_train = np.concatenate([X_all[:test_start], X_all[test_end:]], axis=0)
-            y_train = np.concatenate([y_all[:test_start], y_all[test_end:]], axis=0)
-            mask_train = np.concatenate([mask_all[:test_start], mask_all[test_end:]], axis=0)
-            indices = [i for i in range(X_train.shape[0])]
-            import random
-            random.shuffle(indices)
-            train_idx, val_idx = indices[test_size:], indices[:test_size]
-            X_train, X_val = X_train[train_idx], X_train[val_idx]
-            y_train, y_val = y_train[train_idx], y_train[val_idx]
-            mask_train, mask_val = mask_train[train_idx], mask_train[val_idx]
-            # build model
-            if (self.dense):
-                model = self.model_architecture_dense()
-            else:
-                model = self.model_architecture()
-            
-            # compile model
-            adam = Adam(lr=0.01, decay=1e-6)
-            model.compile(loss='categorical_crossentropy',
-                     optimizer=adam,
-                     metrics=['accuracy'], sample_weight_mode="temporal")
-                     # metrics=['accuracy', 'top_3_categorical_accuracy'], sample_weight_mode="temporal")
-
-            model.summary()
-            # early stop and model storage
-            dir = os.getcwd() # get current working directory
-            self.best_weights_filepath = dir + "/res_models/" + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
-            earlyStopping= keras.callbacks.EarlyStopping(monitor='val_acc', patience=20, verbose=1, mode='auto')
-            saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
-
-            # fit model and save model
-            model.fit([X_train, mask_train], y_train, batch_size= self.batch_size, epochs = self.epochs,
-                validation_data=([X_val, mask_val], y_val), class_weight=self.weights, callbacks=[earlyStopping, saveBestModel])
-            model.load_weights(self.best_weights_filepath)
-            # score, precision, recall, acc, top_3  = model.evaluate([self.X_test, self.mask_test], self.y_test)
-            y_proba = model.predict([X_test, mask_test])
-
-            precision, recall, acc, top_k1, top_k2, top_k3_ = get_all_scores(y_test, y_proba, self.config)
-            score, *_  = model.evaluate([X_test, mask_test], y_test)
-            score_sum += score
-            precision_sum += precision
-            recall_sum += recall
-            acc_sum += acc
-            top_k1_sum += top_k1
-            top_k2_sum += top_k2
-            top_k3_sum += top_k3
-        score = score_sum / fold_num
-        precision = precision_sum / fold_num
-        recall = recall_sum / fold_num
-        acc = acc_sum / fold_num
-        top_k1 = top_k1_sum / fold_num
-        top_k2 = top_k2_sum / fold_num
-        top_k3 = top_k3_sum / fold_num
-
-        print('Test_acc = ', acc * 100, '%')
-        print('Test score:', score)
-        print('Precision:', precision)
-        print('Recall:', recall)
-        print('Test accuracy:', acc)
-        print('top_k1 accuracy:', top_k1)
-        print('top_k2 accuracy:', top_k2)
-        print('top_k3 accuracy:', top_k3)
-        result_file = 'res_' + self.config['dataset'] + '.csv'
-        write_result_to_file(result_file, [score, precision, recall, acc, top_k1, top_k2, top_k3], int(sys.argv[1]), self.config)
-        print()
 
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
@@ -269,7 +202,10 @@ class AttentionRNN:
         # early stop and model storage
         # loss or acc:https://stackoverflow.com/questions/37141636/should-i-use-loss-or-accuracy-as-the-early-stopping-metric
         dir = os.getcwd() # get current working directory
-        self.best_weights_filepath = dir + "/res_models/" + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
+        model_dir = "res_models/"
+        if not os.path.exists(dir + '/' + model_dir):
+            os.makedirs(dir + '/' + model_dir)
+        self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
 
         earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
         saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
@@ -422,41 +358,3 @@ class AttentionRNN:
             image_file = image_dir + str(i) + '.png'
             # plt.savefig(image_file)
             plot_confusion_matrix(image_file,new_matrix, classes=[acts_true, acts_pred],w=1, acc=acc)
-
-    def baseline_knn(self):
-        distance_matrix = np.zeros((self.num_words,self.num_words))
-        frequency_matrix = np.zeros((self.num_words,self.num_words))
-
-        for i in range(self.X_train.shape[0]):
-            # i-th sequence
-            indices = [(x,y) for x in range(self.maxlen) for y in range(self.maxlen)]
-            for idx in indices:
-                row, col = self.X_train[i][idx[0]], self.X_train[i][idx[1]]
-                if row == 0 or col == 0:
-                    continue
-                distance_matrix[row][col] += abs(idx[1] - idx[0])
-                frequency_matrix[row][col] += 1
-                # print()
-        distance_matrix = distance_matrix/frequency_matrix
-        k_list = [1,3,5]
-        # k1, k2, k3 = 1,5,10
-        num = 0
-        correct_num = [0, 0, 0]
-        y_test = flatten_one_hot_np(self.y_test)
-        for i in range(y_test.shape[0]):
-            for j in range(self.X_test.shape[1]):
-                if y_test[i][j] == 0:
-                    continue
-                num += 1
-                x = self.X_test[i][j]
-                y_proba = np.array(distance_matrix[x])
-                sort_args = y_proba.argsort().tolist()
-                print(x)
-                print(y_test[i][j])
-                print(sort_args)
-                print("==============================")
-                for k_i,k in enumerate(k_list):
-                    if y_test[i][j] in sort_args[:k]:
-                        correct_num[k_i] += 1
-        for i, k in enumerate(k_list):
-            print('Top ', k, ": ", correct_num[i]/num)

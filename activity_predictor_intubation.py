@@ -126,61 +126,24 @@ if __name__ == '__main__':
         weighted_gru_ptattr_embed.run() 
 
 ######################################
-    # Exp46: PaPer + PATTR + GRU + embedding + attention(win)
+    # Exp15: PaPer + PATTR + GRU + embedding + attention(win)
     if (sys.argv[1] == '15'):
         config_1['dense'] = True
-        # config_1['attention'] = 'noname_share'
-        # attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-        # config_1['attention'] = 'noname_no_share'
-        # attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
 
         config_1['attention'] = 'general'
         attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 
-        # config_1['attention'] = 'concat'
-        # attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-        # config_1['attention'] = 'ACL_simple'
-        # attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-        # config_1['attention'] = 'ACL_with_W'
-        # attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
 
 
-    # Exp47: PaPer + LSTM + embedding + attention(win)
+    # Exp16: PaPer + LSTM + embedding + attention(win)
     if (sys.argv[1] == '16'):
-        # config_1['attention'] = 'noname_share'
-        # attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-        # config_1['attention'] = 'noname_no_share'
-        # attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
 
         config_1['attention'] = 'general'
         attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 
-        # config_1['attention'] = 'concat'
-        # attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-        # config_1['attention'] = 'ACL_simple'
-        # attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-        # config_1['attention'] = 'ACL_with_W'
-        # attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        # attention_rnn_ptattr.run()
-
-    # Exp48: PaPer + LSTM + embedding + attention(win)
+    # Exp17: PaPer + LSTM + embedding + attention(win)
     if (sys.argv[1] == '17'):
         config_1['attention'] = 'noname_share'
         attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
@@ -206,7 +169,7 @@ if __name__ == '__main__':
         attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 
-    # Exp49: PaPer + LSTM + embedding + attention(win)
+    # Exp18: PaPer + LSTM + embedding + attention(win)
     if (sys.argv[1] == '18'):
         config_1['dense'] = True
         config_1['attention'] = 'noname_share'
@@ -233,7 +196,7 @@ if __name__ == '__main__':
         attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 
-    # Exp20: pre-trained model
+    # Exp19: pre-trained model
     if (sys.argv[1] == '19'):
         config_1['attention'] = 'general'
         attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)

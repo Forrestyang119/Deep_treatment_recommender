@@ -89,79 +89,6 @@ class WeightedRNN:
 
         return model
 
-    def cross_validation(self):
-        X_all = np.concatenate([self.X_train, self.X_val, self.X_test], axis=0)
-        y_all = np.concatenate([self.y_train, self.y_val, self.y_test], axis=0)
-        score_sum, precision_sum, recall_sum, acc_sum, top_3_sum = 0,0,0,0,0
-        fold_num = 5
-        test_size = int(np.ceil(X_all.shape[0]/fold_num))
-        for i in range(fold_num):
-            test_start, test_end = (i, i+test_size) if i+test_size<X_all.shape[0] else (i,X_all.shape[0])
-            X_test = X_all[test_start:test_end]
-            y_test = y_all[test_start:test_end]
-            X_train = np.concatenate([X_all[:test_start], X_all[test_end:]], axis=0)
-            y_train = np.concatenate([y_all[:test_start], y_all[test_end:]], axis=0)
-            indices = [i for i in range(X_train.shape[0])]
-            import random
-            random.shuffle(indices)
-            train_idx, val_idx = indices[test_size:], indices[:test_size]
-            X_train, X_val = X_train[train_idx], X_train[val_idx]
-            y_train, y_val = y_train[train_idx], y_train[val_idx]
-            # build model
-            if (self.config['dense']):
-                model = self.model_architecture_dense()
-            else:
-                model = self.model_architecture()
-            
-            # compile model
-            adam = Adam(lr=0.01, decay=1e-6)
-            model.compile(loss='categorical_crossentropy',
-                     optimizer='adam',
-                     metrics=[ 'accuracy'], sample_weight_mode="temporal")
-                     # metrics=[ 'accuracy', 'top_3_categorical_accuracy'], sample_weight_mode="temporal")
-
-            model.summary()
-            # early stop and model storage
-            dir = os.getcwd() # get current working directory
-            self.best_weights_filepath = dir + "/res_models/" + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
-            earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
-            saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
-
-            # fit model and save model
-            model.fit(X_train, y_train, batch_size= self.batch_size, epochs = self.epochs,
-                validation_data=(X_val, y_val), class_weight=self.weights, callbacks=[earlyStopping, saveBestModel])
-            model.load_weights(self.best_weights_filepath)
-            # score, precision, recall, acc, top_3  = model.evaluate([self.X_test, self.mask_test], self.y_test)
-            y_proba = model.predict(X_test)
-
-            precision, recall, acc, top_k1, top_k2, top_k3_ = get_all_scores(y_test, y_proba, self.config)
-            score, *_  = model.evaluate(X_test, y_test)
-            score_sum += score
-            precision_sum += precision
-            recall_sum += recall
-            acc_sum += acc
-            top_k1_sum += top_k1
-            top_k2_sum += top_k2
-            top_k3_sum += top_k3
-        score = score_sum / fold_num
-        precision = precision_sum / fold_num
-        recall = recall_sum / fold_num
-        acc = acc_sum / fold_num
-        top_k1 = top_k1_sum / fold_num
-        top_k2 = top_k2_sum / fold_num
-        top_k3 = top_k3_sum / fold_num
-
-        print('Test_acc = ', acc * 100, '%')
-        print('Test score:', score)
-        print('Precision:', precision)
-        print('Recall:', recall)
-        print('Test accuracy:', acc)
-        print('top_k1 accuracy:', top_k1)
-        print('top_k2 accuracy:', top_k2)
-        print('top_k3 accuracy:', top_k3)
-        result_file = 'res_' + self.config['dataset'] + '.csv'
-        write_result_to_file(result_file, [score, precision, recall, acc, top_k1, top_k2, top_k3], int(sys.argv[1]), self.config)
-        print()
 
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
@@ -201,7 +128,10 @@ class WeightedRNN:
         
 
         dir = os.getcwd() # get current working directory
-        self.best_weights_filepath = dir + "/res_models/" + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
+        model_dir = "res_models/"
+        if not os.path.exists(dir + '/' + model_dir):
+            os.makedirs(dir + '/' + model_dir)
+        self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
         earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
         saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
 
