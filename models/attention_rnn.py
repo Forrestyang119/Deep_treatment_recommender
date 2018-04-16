@@ -81,14 +81,19 @@ class AttentionRNN:
 
 
     def embedding_layer(self, main_input):
+        # Pre-trained act-vec layer
         if self.embed is 'ACT2VEC_EMBED':
             (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
             embed_matrix = act2vec(X, self.word_index, self.embedding_dim, self.act2vec_win)
             embedding_output = Embedding(self.num_words, self.embedding_dim, weights=[embed_matrix], 
                                           input_length=self.maxlen, mask_zero=True)(main_input)
+        
+        # Word Embedding layer
         elif self.embed is 'EMBED':
             embedding_output = Embedding(self.num_words, self.embedding_dim,
                                    input_length=self.maxlen, mask_zero=True)(main_input)
+        
+        # One hot layer
         elif self.embed is 'HOT':
             self.X_train = vec(self.X_train, self.word_index, 1, 0, self.maxlen)
             self.X_val = vec(self.X_val, self.word_index, 1, 0, self.maxlen) 
@@ -120,17 +125,22 @@ class AttentionRNN:
 
         # attention layer
         attention_output, self.alphas = attention_selector(self.config, rnn1)       
+
         # output layer
         output = TimeDistributed(Dense(num_words, activation='softmax'))(attention_output)
-        # output  = Multiply()([output, mask_input])
+
+
         model = Model(inputs=[main_input, mask_input], outputs=output)
 
         return model
 
 
     def model_evaluation(self, model):
+
+        # Get y_predict
         y_proba = model.predict([self.X_test, self.mask_test])
         self.save_predict_result(self.y_test, y_proba, self.word_index)
+
 
         precision, recall, acc, top_k1, top_k2, top_k3 = get_all_scores(self.y_test, y_proba, self.config)
         score, *_  = model.evaluate([self.X_test, self.mask_test], self.y_test)
@@ -345,41 +355,3 @@ class AttentionRNN:
             image_file = image_dir + str(i) + '.png'
             # plt.savefig(image_file)
             plot_confusion_matrix(image_file,new_matrix, classes=[acts_true, acts_pred],w=1, acc=acc)
-
-    def baseline_knn(self):
-        distance_matrix = np.zeros((self.num_words,self.num_words))
-        frequency_matrix = np.zeros((self.num_words,self.num_words))
-
-        for i in range(self.X_train.shape[0]):
-            # i-th sequence
-            indices = [(x,y) for x in range(self.maxlen) for y in range(self.maxlen)]
-            for idx in indices:
-                row, col = self.X_train[i][idx[0]], self.X_train[i][idx[1]]
-                if row == 0 or col == 0:
-                    continue
-                distance_matrix[row][col] += abs(idx[1] - idx[0])
-                frequency_matrix[row][col] += 1
-                # print()
-        distance_matrix = distance_matrix/frequency_matrix
-        k_list = [1,3,5]
-        # k1, k2, k3 = 1,5,10
-        num = 0
-        correct_num = [0, 0, 0]
-        y_test = flatten_one_hot_np(self.y_test)
-        for i in range(y_test.shape[0]):
-            for j in range(self.X_test.shape[1]):
-                if y_test[i][j] == 0:
-                    continue
-                num += 1
-                x = self.X_test[i][j]
-                y_proba = np.array(distance_matrix[x])
-                sort_args = y_proba.argsort().tolist()
-                print(x)
-                print(y_test[i][j])
-                print(sort_args)
-                print("==============================")
-                for k_i,k in enumerate(k_list):
-                    if y_test[i][j] in sort_args[:k]:
-                        correct_num[k_i] += 1
-        for i, k in enumerate(k_list):
-            print('Top ', k, ": ", correct_num[i]/num)

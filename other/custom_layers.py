@@ -6,20 +6,26 @@ from keras.layers import merge, Multiply, Add, Activation, dot, concatenate
 from keras import backend as K
 
 
-# attention layer with window size = BKWIN (share paramater)
+# Attention Structure: Simple_weight 
 # http://anthology.aclweb.org/P16-2034
 def attention_layer_ACL_simple(config, rnn1):
     input_dim = int(rnn1.shape[2])
     batch_size = config['batch_size']
     attention_tensors = []
     BK_WIN = config['attention_win']
-    dense_0 = Dense(1, use_bias=False)
+
+    # Shared layers
     dense_1 = Dense(1)
     permute_1 = Permute((2,1))
     reshape_1 = Reshape((input_dim, BK_WIN))
     act = Activation('tanh')
+    
+    # vectors of attention weights
     alphas = []
+    
     for i in range(1, config['maxlen'] + 1, 1):
+        # Slice rnn output into window size
+        # (maxlen, hidden_size) --> (window_size, hidden_size)
         if i < BK_WIN - 1:
             rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
             rnn_head = Lambda(lambda x: x[:, 0:1, :])(rnn1)
@@ -32,64 +38,28 @@ def attention_layer_ACL_simple(config, rnn1):
             rnn_slice = concatenate([rnn_cct, rnn_slice], axis=-2)
         else:
             rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
+        
+        # M = tanh(H)
+        # Tanh activation
         a_1 = act(rnn_slice)
 
+        # α = softmax(w^T M)
         # a2: batch * timestep * 1
         a_2 = dense_1(a_1)
         alpha = permute_1(a_2)
-
         # alpha: batch * 1 * timestep
         alpha = Activation("softmax")(alpha)
+        
+        # r = H α^T
         tensor = dot([alpha, rnn_slice], [2,1])
         attention_tensors.append(tensor)
         alphas.append(alpha)
-    # alpha: 1 * 1 * timestep
+
     attention_output = keras.layers.concatenate(attention_tensors, axis = -2)
     return attention_output, alphas
 
-# attention layer with window size = BKWIN (share paramater)
-# http://anthology.aclweb.org/P16-2034
-def attention_layer_ACL_withW(config, rnn1):
-    input_dim = int(rnn1.shape[2])
-    batch_size = config['batch_size']
-    attention_tensors = []
-    # attention_output = rnn1[: 1, :]
-    BK_WIN = config['attention_win']
-    dense_0 = Dense(int(config['hidden_vector']/4))
-    dense_1 = Dense(1)
-    permute_1 = Permute((2,1))
-    reshape_1 = Reshape((input_dim, BK_WIN))
-    act = Activation('tanh')
-    for i in range(1, config['maxlen'] + 1, 1):
-        if i < BK_WIN - 1:
-            rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-            rnn_head = Lambda(lambda x: x[:, 0:1, :])(rnn1)
-            rnn_cct = concatenate([rnn_head for i in range(BK_WIN - i)], axis = -2)
-            rnn_slice = concatenate([rnn_cct, rnn_slice], axis=-2)
-        elif i == BK_WIN-1:
-            rnn_slice = Lambda(lambda x : x[:, :i, :])(rnn1)
-            rnn_head = Lambda(lambda x: x[:, 0:1, :])(rnn1)
-            rnn_cct = rnn_head
-            rnn_slice = concatenate([rnn_cct, rnn_slice], axis=-2)
-        else:
-            rnn_slice = Lambda(lambda x : x[:, i - BK_WIN:i, :])(rnn1)
-        # rnn_slice: batch_size * BK_WIN * hidden_size
-        rnn_slice = dense_0(rnn_slice)
-        a_1 = act(rnn_slice)
-        # a_1 = Dropout(0.4)(a_1)
-        # a2: batch * timestep * 1
-        a_2 = dense_1(a_1)
-        alpha = permute_1(a_2)
-        # alpha: batch * 1 * timestep
-        alpha = Activation("softmax")(alpha)
-        tensor = dot([alpha, rnn_slice], [2,1])
-        attention_tensors.append(tensor)
-    # alpha: 1 * 1 * timestep
-    attention_output = keras.layers.concatenate(attention_tensors, axis = -2)
-    return attention_output
 
-
-# baseline - general
+# Attention Structure: General
 # https://nlp.stanford.edu/pubs/emnlp15_attn.pdf -- section 3.1
 def attention_context_gen_k(config, rnn1):
     hidden_size = int(rnn1.shape[2])
@@ -128,7 +98,7 @@ def attention_context_gen_k(config, rnn1):
     attention_output = keras.layers.concatenate(vectors, axis=-2)
     return attention_output, alphas
 
-# baseline - concatenate
+# Attention Structure: Concatenate
 # https://nlp.stanford.edu/pubs/emnlp15_attn.pdf -- section 3.1
 def attention_context_concat_k(config, rnn1):
     hidden_size = int(rnn1.shape[2])
@@ -256,7 +226,7 @@ def attention_3d_bocks_concat(config, time_step, h_s, h_t, hidden_size, dense_0,
     return attention_vector, attention_weights
 
 
-
+# concatenate tensor in the last dimension
 def concat_states(config, h_t, h_s, time_step, hsize=-1):
     if hsize == -1:
         hsize = 2*int(h_s.shape[2])
