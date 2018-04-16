@@ -8,10 +8,9 @@ The codes include two different parts:
 
 We are not able to provide the authentic data as it is allowed by the protocol of our project.
 
-Alternatively, we provided several synthetic desensitized patient records generated using the algorithm we proposed in this paper. Here is a summary of the data provided:
-1. 100 synthetic intubation patient records
-2. 1000 synthetic intubation patient records
-3. 5000 synthetic intubation patient records
+Alternatively, we provided the synthetic desensitized patient records generated using the algorithm we proposed in this paper. Here is a summary of the data provided:
++ 1000 synthetic intubation patient records (1000 activity traces with patient attributes)
+
 
 More synthetic patient records can be generated using the synthetic patient record generator we provided. The algorithm details can be found in Alg.1 in our paper and the implementation is described below. 
 
