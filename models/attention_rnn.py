@@ -202,7 +202,10 @@ class AttentionRNN:
         # early stop and model storage
         # loss or acc:https://stackoverflow.com/questions/37141636/should-i-use-loss-or-accuracy-as-the-early-stopping-metric
         dir = os.getcwd() # get current working directory
-        self.best_weights_filepath = dir + "/res_models/" + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
+        model_dir = "res_models/"
+        if not os.path.exists(dir + '/' + model_dir):
+            os.makedirs(dir + '/' + model_dir)
+        self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
 
         earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
         saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
