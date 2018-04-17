@@ -7,8 +7,6 @@ import numpy as np
 import sys
 
 
-
-# seed = 613213
 seed = 0
 np.random.seed(seed)
 
@@ -33,15 +31,9 @@ config_1 = {
 
 train_path = 'data_intubation/1000_log.pkl'
 dic_path = 'data_intubation/al_dict.pkl'
-# vec_path = 'data_intubation/s2000_log.pkl'
 vec_path = 'data_intubation/1000_log.pkl'
 attr_path = 'data_intubation/attrs_dict.pkl'
 
-
-# train_path = 'data_synthetic_intubation/5000_log.pkl'
-# dic_path = 'data_synthetic_intubation/dict_withIid.pkl'
-# vec_path = 'data_synthetic_intubation/5000_log.pkl'
-# attr_path = 'data_synthetic_intubation/attrs_dict.pkl'
 
 if __name__ == '__main__':
     # config_1['random_seed'] = int(sys.argv[2])
