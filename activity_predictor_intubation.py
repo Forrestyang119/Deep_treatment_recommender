@@ -136,7 +136,7 @@ if __name__ == '__main__':
         attention_rnn_ptattr.run()
 
 
-    # Exp16: PaPer + LSTM + PATTR + embedding + attention(win)
+    # Exp16: PaPer + LSTM + PatientAttributes(dense)  + embedding + attention(win)
     if (sys.argv[1] == '16'):
 
         config_1['dense'] = True
@@ -169,7 +169,7 @@ if __name__ == '__main__':
         attention_rnn_ptattr.run()
 
 
-    # Exp18: PaPer + PATTR + GRU + embedding + attention(win)
+    # Exp18: PaPer + PatientAttributes(dense)  + GRU + embedding + attention(win)
     if (sys.argv[1] == '18'):
         config_1['dense'] = True
 

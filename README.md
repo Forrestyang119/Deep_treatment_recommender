@@ -42,6 +42,7 @@ Or pick the model in `activity_predictor_intubation.py` and run:
 ```
 python3 activity_predictor_intubation.py {MODEL_INDEX}
 ```
+Please note the accuracy showing during the model training does not reflect the actual accuracy because of lack-of-masks. This is a limitation of keras implementation. Permute/Reshape layers used in the attention layer does not support masks. Hence the final test accuracy (and top-k accuracy) is calculated by our function tools.py/get_all_scores(). 
 ### Running Synthetic Patient Record Generator
 Step.1: Calculate the alignment matrix:
 ```
