@@ -27,9 +27,9 @@ As described in the paper, there are three steps to generate the synthetic patie
 For step.1, we implemented the PIMA algorithm, details can be found in 2017 ICDM workshop paper ["Process-Oriented Iterative Multiple Alignment for Medical Process Mining"](https://ieeexplore.ieee.org/document/8215695/). For step.2, the method is based on the methodology proposed by [Demirtas and and Doganay](https://www.ncbi.nlm.nih.gov/pubmed/22251171) and called the R package [BinNor](https://cran.r-project.org/web/packages/BinNor/BinNor.pdf) 
 
 ## Dependencies
-Python 3.5+, Tensorflow 1.2+, Keras, numpy, pandas, pickle, h5py, rpy2
-R 3.4+
-Jupyter Notebook
+Python 3.5+, Tensorflow 1.2+, Keras, numpy, pandas, pickle, h5py, rpy2  
+R 3.4+  
+Jupyter Notebook  
 
 ## Running
 ### Running Deep Treatment Recommender
