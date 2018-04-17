@@ -5,7 +5,7 @@ from models.attention_rnn_ptattr import AttentionRNNPtAttr
 import numpy as np
 import sys
 
-seed = 1
+seed = 2
 np.random.seed(seed)
 config_1 = {
     'hidden_vector' : 64,
