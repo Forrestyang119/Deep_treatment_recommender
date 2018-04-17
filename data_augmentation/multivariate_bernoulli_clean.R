@@ -81,7 +81,7 @@ cal_corr <- function(data) {
   # phi correlation
   corr = matrix(0, ncol(data), ncol(data))
   for (col1 in 1:ncol(data)) {
-    print(col1)
+    # print(col1)
     for (col2 in col1:ncol(data)) {
       x_1_1 = 0
       x_1_0 = 0
@@ -138,9 +138,6 @@ generate_synthetic_sequences <- function(n, file_path) {
 
   corr = cal_corr(flt_data)
   corr = toSymmetric(corr) # calculate correlation matrix
-  print(corr[3,9])
-  print(flt_data[, 3])
-  print(flt_data[, 9])
   
   synthetic = jointly.generate.binary.normal(n, ncol(flt_data), no.nor = 0, prop.vec.bin = flt_p,
                                         sigma_star=corr,
