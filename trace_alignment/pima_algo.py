@@ -334,7 +334,7 @@ def pima_iter(namat, method, repo=repo, verbose=True):
 def main():
     # EXAMPLE USAGE: CONVERGE TWICE
     # LOAD DATA
-    log = csv2log(filename='Synthesic_activityTraces_1000.csv',
+    log = csv2log(filename='Synthetic_activityTraces_1000.csv',
                   caseids_col='caseID',
                   acts_col='activity', 
                   starts_col='startTime')
