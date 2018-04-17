@@ -2,14 +2,11 @@ from models.weighted_rnn import WeightedRNN
 from models.weighted_rnn_ptattr import WeightedRNNPtAttr
 from models.attention_rnn import AttentionRNN
 from models.attention_rnn_ptattr import AttentionRNNPtAttr
-
 import numpy as np
 import sys
 
-
-seed = 0
+seed = 1
 np.random.seed(seed)
-
 config_1 = {
     'hidden_vector' : 64,
     'drop_out'      : 0.5,
@@ -36,8 +33,6 @@ attr_path = 'data_intubation/attrs_dict.pkl'
 
 
 if __name__ == '__main__':
-    # config_1['random_seed'] = int(sys.argv[2])
-    np.random.seed(config_1['random_seed'])
 
     # Exp1: one-hot LSTM
     if (sys.argv[1] == '1'):

@@ -53,7 +53,6 @@ class WeightedRNN:
 
         (self.id_train, self.X_train, self.y_train), (self.id_val, self.X_val, self.y_val), (self.id_test, self.X_test, self.y_test), self.word_index, self.weights = load_data(train_path=train_path, dic_path = dic_path, config = config, shuffle=False)
 
-
     def model_architecture(self):
         # input layer    
         main_input = Input(shape=(self.maxlen,)) 
@@ -89,7 +88,6 @@ class WeightedRNN:
 
         return model
 
-
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
         if not os.path.exists(dir + '/res_pred/'):
@@ -121,7 +119,7 @@ class WeightedRNN:
         model = self.model_architecture()
         adam = Adam(lr=0.01, decay=1e-6)
         model.compile(loss='categorical_crossentropy',
-                 optimizer=adam,
+                 optimizer='adam',
                  metrics=['accuracy'], sample_weight_mode="temporal")
                  # metrics=['precision', 'recall', 'accuracy', 'top_5_categorical_accuracy'], sample_weight_mode="temporal")
 
@@ -135,8 +133,8 @@ class WeightedRNN:
         if not os.path.exists(dir + '/' + model_dir):
             os.makedirs(dir + '/' + model_dir)
         self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
-        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
-        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, verbose=1, mode='auto')
+        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
 
         # fit model and save model
         model.fit(self.X_train, self.y_train, batch_size= self.batch_size, epochs = self.epochs,

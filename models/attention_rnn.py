@@ -68,7 +68,6 @@ class AttentionRNN:
         self.num_words = len(self.word_index) + 2
         self.mask_train, self.mask_val, self.mask_test = [self.create_mask(a, self.num_words) for a in [self.X_train, self.X_val, self.X_test]]
 
-
     def create_mask(self, array, num_words):
         arr = np.copy(array)
         arr = arr.astype(float)
@@ -79,10 +78,14 @@ class AttentionRNN:
 
         return arr
 
-
-    def embedding_layer(self, main_input):
+    def model_architecture(self):
         num_words = len(self.word_index) + 2
 
+        # input layer    
+        mask_input = Input(shape = (self.maxlen, num_words)) # input for mask
+        main_input = Input(shape = (self.maxlen,))              # input should be a tensor
+        
+        # embedding layer
         # Pre-trained act-vec layer
         if self.embed is 'ACT2VEC_EMBED':
             (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
@@ -103,20 +106,6 @@ class AttentionRNN:
             main_input = Input(shape=(self.maxlen, num_words)) 
             embedding_output = main_input
 
-        return embedding_output
-
-
-
-    def model_architecture(self):
-        num_words = len(self.word_index) + 2
-
-        # input layer    
-        mask_input = Input(shape = (self.maxlen, num_words)) # input for mask
-        main_input = Input(shape = (self.maxlen,))              # input should be a tensor
-        
-        # embedding layer
-        embedding_output = self.embedding_layer(main_input)
-
         # rnn layer
         if (self.model is 'LSTM'):
             rnn1 = LSTM(self.hidden_vector, dropout = self.drop_out, recurrent_dropout = self.drop_out, return_sequences = True)(embedding_output)
@@ -135,7 +124,6 @@ class AttentionRNN:
         model = Model(inputs=[main_input, mask_input], outputs=output)
 
         return model
-
 
     def model_evaluation(self, model):
 
@@ -157,7 +145,6 @@ class AttentionRNN:
         result_file = 'res_' + self.config['dataset'] + '.csv'
         write_result_to_file(result_file, [score, precision, recall, acc, top_k1, top_k2, top_k3], int(sys.argv[1]), self.config)
         print()
-
 
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
@@ -198,7 +185,7 @@ class AttentionRNN:
         adam = Adam(lr=0.01, decay=1e-6)
         # compile model
         model.compile(loss='categorical_crossentropy',
-                 optimizer='adam',
+                 optimizer=adam,
                  metrics=['accuracy'], sample_weight_mode="temporal")
                  # metrics=['accuracy', 'top_3_categorical_accuracy'], sample_weight_mode="temporal")
 
@@ -212,8 +199,8 @@ class AttentionRNN:
             os.makedirs(dir + '/' + model_dir)
         self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
 
-        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
-        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, verbose=1, mode='auto')
+        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
 
         # fit model and save model
         model.fit([self.X_train, self.mask_train], self.y_train, batch_size= self.batch_size, epochs = self.epochs,
@@ -223,7 +210,6 @@ class AttentionRNN:
         # evaluate model
         self.model_evaluation(model)
 
-
     def run_from_pretrained(self, model_path):
         # build model
         if (self.dense):
@@ -232,7 +218,6 @@ class AttentionRNN:
             model = self.model_architecture()
         
         adam = Adam(lr=0.01, decay=1e-6)
-        # adam = 'adam'
         # compile model
         model.compile(loss='categorical_crossentropy',
                  optimizer=adam,
@@ -244,8 +229,8 @@ class AttentionRNN:
         # loss or acc:https://stackoverflow.com/questions/37141636/should-i-use-loss-or-accuracy-as-the-early-stopping-metric
         dir = os.getcwd() # get current working directory
         self.best_weights_filepath = dir + "/res_models/" + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
-        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
-        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, verbose=1, mode='auto')
+        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
 
         # fit model and save model
         model.fit([self.X_train, self.mask_train], self.y_train, batch_size= self.batch_size, epochs = self.epochs,

@@ -68,7 +68,6 @@ class AttentionRNNPtAttr:
         self.num_words = len(self.word_index) + 2
         self.mask_train, self.mask_val, self.mask_test = [self.create_mask(a, self.num_words) for a in [self.X_train, self.X_val, self.X_test]]
 
-
     def create_mask(self, array, num_words):
         arr = np.copy(array)
         arr = arr.astype(float)
@@ -76,32 +75,7 @@ class AttentionRNNPtAttr:
         arr = np.repeat(arr, num_words, axis = 2)
         arr[arr > 0] = 1
         arr[arr == 0] = 1e-8
-
         return arr
-
-
-    def embedding_layer(self, main_input):
-        num_words = len(self.word_index) + 2
-
-        if self.embed is 'ACT2VEC_EMBED':
-              (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
-
-              embed_matrix = act2vec(X, self.word_index, self.embedding_dim, self.act2vec_win)
-              embedding_output = Embedding(self.num_words, self.embedding_dim, weights=[embed_matrix], 
-                                      input_length=self.maxlen, mask_zero=True)(main_input)
-        elif self.embed is 'EMBED':
-              embedding_output = Embedding(self.num_words, self.embedding_dim,
-                                       input_length=self.maxlen, mask_zero=True)(main_input)
-        elif self.embed is 'HOT':
-              self.X_train = vec(self.X_train, self.word_index, 1, 0, self.maxlen)
-              self.X_val = vec(self.X_val, self.word_index, 1, 0, self.maxlen) 
-              self.X_test = vec(self.X_test, self.word_index, 1, 0, self.maxlen) 
-              main_input = Input(shape=(self.maxlen, num_words)) 
-              embedding_output = main_input
-
-        return embedding_output
-
-
 
     def model_architecture(self):
         num_words = len(self.word_index) + 2
@@ -112,22 +86,22 @@ class AttentionRNNPtAttr:
         
         # embedding layer
         # embedding_output = self.embedding_layer(main_input)
-
         if self.embed is 'ACT2VEC_EMBED':
             (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
 
             embed_matrix = act2vec(X, self.word_index, self.embedding_dim, self.act2vec_win)
             embedding_output = Embedding(self.num_words, self.embedding_dim, weights=[embed_matrix], 
-                                      input_length=self.maxlen, mask_zero=True)(main_input)
+                                      input_length=self.maxlen, mask_zero=False)(main_input)
         elif self.embed is 'EMBED':
             embedding_output = Embedding(self.num_words, self.embedding_dim,
-                                       input_length=self.maxlen, mask_zero=True)(main_input)
+                                       input_length=self.maxlen, mask_zero=False)(main_input)
         elif self.embed is 'HOT':
             self.X_train = vec(self.X_train, self.word_index, 1, 0, self.maxlen)
             self.X_val = vec(self.X_val, self.word_index, 1, 0, self.maxlen) 
             self.X_test = vec(self.X_test, self.word_index, 1, 0, self.maxlen) 
             main_input = Input(shape=(self.maxlen, num_words)) 
             embedding_output = main_input
+
         # merge layer
         lengths = [len(v) for v in self.attr_dict.values()]
         pt_attr = Input(shape=(self.maxlen, lengths[0])) 
@@ -147,7 +121,6 @@ class AttentionRNNPtAttr:
         output = TimeDistributed(Dense(num_words, activation='softmax'))(attention_output)
         output  = Multiply()([output, mask_input])
         model = Model(inputs=[main_input, mask_input, pt_attr], outputs=output)
-
         return model
 
     def model_architecture_dense(self):
@@ -200,7 +173,6 @@ class AttentionRNNPtAttr:
         output = TimeDistributed(Dense(num_words, activation='softmax'))(attention_output)
         output  = Multiply()([output, mask_input])
         model = Model(inputs=[main_input, mask_input, pt_attr], outputs=output)
-
         return model
 
     def model_evaluation(self, model):
@@ -221,7 +193,6 @@ class AttentionRNNPtAttr:
         result_file = 'res_' + self.config['dataset'] + '.csv'
         write_result_to_file(result_file, [score, precision, recall, acc, top_k1, top_k2, top_k3], int(sys.argv[1]), self.config)
         print()
-
 
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
@@ -262,7 +233,7 @@ class AttentionRNNPtAttr:
         # compile model
         adam = Adam(lr=0.01, decay=1e-6)
         model.compile(loss='categorical_crossentropy',
-                 optimizer='adam',
+                 optimizer=adam,
                  metrics=['accuracy'], sample_weight_mode="temporal")
                  # metrics=['accuracy', 'top_3_categorical_accuracy'], sample_weight_mode="temporal")
 
@@ -274,8 +245,8 @@ class AttentionRNNPtAttr:
         if not os.path.exists(dir + '/' + model_dir):
             os.makedirs(dir + '/' + model_dir)
         self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
-        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
-        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+        earlyStopping= keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, verbose=1, mode='auto')
+        saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
 
         # fit model and save model
         model.fit([self.X_train, self.mask_train, self.train_attr], self.y_train, batch_size= self.batch_size, epochs = self.epochs,
@@ -345,8 +316,6 @@ class AttentionRNNPtAttr:
 
     def plot_attention_matrix_all(self, data, matrix, label_pred):
         # attention_weights = np.concatenate(matrix, axis = 1)
-        import pdb
-
         num_seqs = matrix[0].shape[0]
         time_step = self.maxlen
         # win_size = matrix.shape[2]

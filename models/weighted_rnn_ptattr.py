@@ -60,7 +60,6 @@ class WeightedRNNPtAttr:
         (self.id_train, self.X_train, self.y_train), (self.id_val, self.X_val, self.y_val), (self.id_test, self.X_test, self.y_test), self.word_index, self.weights = load_data(train_path=train_path, dic_path = dic_path, config = config, shuffle=False)
         self.attr_dict, self.train_attr, self.val_attr, self.test_attr = load_attributes(path = attr_path, id_train = self.id_train, id_val = self.id_val, id_test = self.id_test, maxlen = self.maxlen)
 
-
     def model_architecture(self):
       # input layer    
       main_input = Input(shape=(self.maxlen,)) 
@@ -97,7 +96,6 @@ class WeightedRNNPtAttr:
       output = TimeDistributed(Dense(num_words, activation='softmax'))(rnn1)
 
       model = Model(inputs=[main_input, pt_attr], outputs=output)
-
       return model
 
     def model_architecture_dense(self):
@@ -140,7 +138,6 @@ class WeightedRNNPtAttr:
 
         return model
 
-
     def run(self):
       # build model
       if (self.dense):
@@ -162,8 +159,8 @@ class WeightedRNNPtAttr:
       if not os.path.exists(dir + '/' + model_dir):
           os.makedirs(dir + '/' + model_dir)
       self.best_weights_filepath = dir + "/" + model_dir + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + ' weighted_main.h5'
-      earlyStopping= keras.callbacks.EarlyStopping(monitor='val_loss', patience=20, verbose=1, mode='auto')
-      saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+      earlyStopping= keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, verbose=1, mode='auto')
+      saveBestModel = keras.callbacks.ModelCheckpoint(self.best_weights_filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='auto')
 
       # fit model and save model
       model.fit([self.X_train, self.train_attr], self.y_train, batch_size= self.batch_size, epochs = self.epochs,

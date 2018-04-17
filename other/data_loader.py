@@ -79,7 +79,7 @@ class Data:
         train_set = (train_set_ids, train_set_x, train_set_y)
         valid_set = (valid_set_ids, valid_set_x, valid_set_y)
 
-        def remove_unk(x): #??
+        def remove_unk(x): 
             return [[1 if w >= n_words else w for w in sen] for sen in x]
 
         valid_set_ids, valid_set_x, valid_set_y = valid_set
@@ -179,8 +179,10 @@ def vec(org_y, word_index, k, s, maxlen):
                     if m >= t0:
                         new_y[i, m, a] = 1
                         act = list(word_index.keys())[list(word_index.values()).index(a)]
-                        #print(i, t, m, act)
-            elif a > 1:
+                        # if (i < 1):
+                        #     print(i, t, m, act)
+                        
+            elif a > 1: # a == 0 for paddings
                 t0 = t
                 new_y[i, t0, a] = 1
 
