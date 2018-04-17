@@ -61,5 +61,7 @@ Step.3: Generate synthetic patient records with attributes:
 ```
 cd data_augmentation
 python3 synthetic_patient_record_generator.py
+python3 log_preprocess_withId.py # convert data format from csv to pkl
+python3 attribute_preprocess.py # convert data format from csv to pkl
 ```
 
