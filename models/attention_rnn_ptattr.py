@@ -192,6 +192,9 @@ class AttentionRNNPtAttr:
 
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
+        if not os.path.exists(dir + '/res_pred/'):
+            os.makedirs(dir + '/res_pred/')
+
         filename = dir + '/res_pred/' + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + '.csv'
         # reverse dict
         word_i = dict([(v, k) for k, v in word_index.items()])
@@ -258,7 +261,7 @@ class AttentionRNNPtAttr:
 
         y_predict = model.predict([self.X_train, self.mask_train, self.train_attr])
         y_predict = flatten_one_hot(self.y_train,y_predict)
-        self.plot_attention_matrix(self.X_train, result, y_predict)
+        # self.plot_attention_matrix(self.X_train, result, y_predict)
         print('')
 
     def plot_attention_matrix(self, data, matrix, label_pred):

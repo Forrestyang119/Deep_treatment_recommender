@@ -18,7 +18,7 @@ config_1 = {
     'embedding_dim' : 17,
     'maxlen'        : 20,
     'batch_size'    : 20,
-    'epochs'        : 10,
+    'epochs'        : 1,
     'act2vec_win'   : 5,
     'dense'         : False,     # decide whether compress the patient attributes
     'dense_size'    : 3,         # decide the compressed patient attribute set size
@@ -31,11 +31,11 @@ config_1 = {
     'top_k3'        : 7,
 }
 
-train_path = 'data_intubation/s_act_withId.pkl'
-dic_path = 'data_intubation/s_dict_withId.pkl'
+train_path = 'data_intubation/1000_log.pkl'
+dic_path = 'data_intubation/al_dict.pkl'
 # vec_path = 'data_intubation/s2000_log.pkl'
-vec_path = 'data_intubation/s_act_withId.pkl'
-attr_path = 'data_intubation/s_attrs_dict.pkl'
+vec_path = 'data_intubation/1000_log.pkl'
+attr_path = 'data_intubation/attrs_dict.pkl'
 
 
 # train_path = 'data_synthetic_intubation/5000_log.pkl'
@@ -172,13 +172,6 @@ if __name__ == '__main__':
     # Exp18: PaPer + LSTM + embedding + attention(win)
     if (sys.argv[1] == '18'):
         config_1['dense'] = True
-        config_1['attention'] = 'noname_share'
-        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'noname_no_share'
-        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
 
         config_1['attention'] = 'general'
         attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
@@ -189,10 +182,6 @@ if __name__ == '__main__':
         attention_rnn_ptattr.run()
 
         config_1['attention'] = 'ACL_simple'
-        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'ACL_with_W'
         attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 

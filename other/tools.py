@@ -93,11 +93,6 @@ def write_result_to_file(file, results, exp_idx, config):
 
 def attention_selector(config, rnn1):
   alphas = []
-  if config['attention'] == 'noname_share':
-    attention_output = attention_layer_share(config, rnn1)
-  
-  if config['attention'] == 'noname_no_share':
-    attention_output = attention_layer(config, rnn1)
 
   if config['attention'] == 'general':
     attention_output, alphas = attention_context_gen_k(config, rnn1)
@@ -107,12 +102,9 @@ def attention_selector(config, rnn1):
 
   if config['attention'] == 'ACL_simple':
     attention_output, alphas = attention_layer_ACL_simple(config, rnn1)
-
-  if config['attention'] == 'ACL_with_W':
-    attention_output = attention_layer_ACL_withW(config, rnn1)
   
   else:
-    attention_output = attention_layer_share(config, rnn1)
+    attention_output, alphas = attention_context_gen_k(config, rnn1)
 
   return attention_output, alphas
 

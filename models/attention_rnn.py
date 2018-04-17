@@ -159,6 +159,9 @@ class AttentionRNN:
 
     def save_predict_result(self, y_true, y_pred, word_index):   
         dir = os.getcwd()
+        if not os.path.exists(dir + '/res_pred/'):
+            os.makedirs(dir + '/res_pred/')
+
         filename = dir + '/res_pred/' + datetime.now().strftime('%Y-_%m_%d; %H_%M_%S;') + '.csv'
         # reverse dict
         word_i = dict([(v, k) for k, v in word_index.items()])
