@@ -9,19 +9,12 @@ https://github.com/moses-smt/mosesdecoder/raw/master/scripts/tokenizer/tokenizer
 3) Then run this script.
 """
 
-# dataset_path='D:/XinDong/Dropbox/dataset/'
-# dataset_path = '/Users/Xin/Dropbox/dataset/'
-
-# dataset_path = '122AustinDictionary_09.18.csv'
-#dataset_path = 'random_Generated_sequence.csv'
 import numpy
 import six.moves.cPickle as pkl
 import glob
 import os
 import pandas as pd
 
-# dataset_path = os.getcwd() + '/s_output_2000.csv'
-# dataset_path = 'output_5000_PIMA.csv'
 dataset_path = 'Files_synthetic/rnn_input_1000.csv'
 
 def build_dict():
@@ -98,6 +91,4 @@ def main(path = None):
 
 
 if __name__ == '__main__':
-    # path = os.getcwd()  +  '/s_dict_withIid.pkl'
-    # main(path = path)
     main()
