@@ -121,7 +121,7 @@ class WeightedRNN:
         model = self.model_architecture()
         adam = Adam(lr=0.01, decay=1e-6)
         model.compile(loss='categorical_crossentropy',
-                 optimizer='adam',
+                 optimizer=adam,
                  metrics=['accuracy'], sample_weight_mode="temporal")
                  # metrics=['precision', 'recall', 'accuracy', 'top_5_categorical_accuracy'], sample_weight_mode="temporal")
 

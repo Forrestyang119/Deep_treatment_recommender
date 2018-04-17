@@ -74,10 +74,10 @@ def write_result_to_file(file, results, exp_idx, config):
     "12 - GRU+EMB+PATTR(dense) ",
     "13 - LSTM+EMB+A2V+PATTR(dense) ",
     "14 - GRU+EMB+A2V+PATTR(dense) ",
-    "15 - PaPer+PATTR+GRU+EMB+ATT",
-    "16 - PaPer+GRU+EMB+ATT",
-    "17 - PaPer+LSTM+EMB+ATT",
-    "18 - PaPer+PATTR+LSTM+EMB+ATT",
+    "15 - PaPer+LSTM+EMB+ATT",
+    "16 - PaPer+PATTR+LSTM+EMB+ATT",
+    "17 - PaPer+GRU+EMB+ATT",
+    "18 - PaPer+PATTR+GRU+EMB+ATT",
     "19 - Pre-trained+LSTM+ATT(General)"
     "19 - Pre-trained+GRU+ATT(General)"
   ]

@@ -8,8 +8,8 @@ import sys
 
 
 
-seed = 613213
-# seed = 0
+# seed = 613213
+seed = 0
 np.random.seed(seed)
 
 config_1 = {
@@ -17,7 +17,7 @@ config_1 = {
     'drop_out'      : 0.5,
     'embedding_dim' : 17,
     'maxlen'        : 20,
-    'batch_size'    : 20,
+    'batch_size'    : 100,
     'epochs'        : 10000,
     'act2vec_win'   : 5,
     'dense'         : False,     # decide whether compress the patient attributes
@@ -90,12 +90,12 @@ if __name__ == '__main__':
         weighted_gru_ptattr_embed = WeightedRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         weighted_gru_ptattr_embed.run()
 
-    # Exp9: LSTM + embedding + Act2vec + PatientAttributes
+    # Exp9: LSTM + embedding + Act2vec + PatientAttributes(w/o dense layer)
     if (sys.argv[1] == '9'):
         weighted_lstm_ptattr_act2vec_embed = WeightedRNNPtAttr(model = 'LSTM',  embed = 'ACT2VEC_EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         weighted_lstm_ptattr_act2vec_embed.run()
 
-    # Exp10: GRU + embedding + Act2vec + PatientAttributes
+    # Exp10: GRU + embedding + Act2vec + PatientAttributes(w/o dense layer)
     if (sys.argv[1] == '10'):
         weighted_gru_ptattr_act2vec_embed = WeightedRNNPtAttr(model = 'GRU',  embed = 'ACT2VEC_EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         weighted_gru_ptattr_act2vec_embed.run()
@@ -125,62 +125,75 @@ if __name__ == '__main__':
         weighted_gru_ptattr_embed = WeightedRNNPtAttr(model = 'GRU',  embed = 'ACT2VEC_EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         weighted_gru_ptattr_embed.run() 
 
-######################################
-    # Exp15: PaPer + PATTR + GRU + embedding + attention(win)
+
+    '''
+        The following RNN models include attention.
+        Please note the accuracy showing during training does not reflect the actual accuracy because of lack-of-mask.
+        This is a limitation of keras implementation.
+        Permute/Reshape layers used in the attention layer does not support masks.
+        Final accuracy is calculated by our function tools.py/get_all_scores()
+    '''
+
+    # Exp15: PaPer  + LSTM + embedding + attention(win)
     if (sys.argv[1] == '15'):
+        config_1['attention'] = 'general'
+        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+        config_1['attention'] = 'concat'
+        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+        config_1['attention'] = 'ACL_simple'
+        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+
+    # Exp16: PaPer + LSTM + PATTR + embedding + attention(win)
+    if (sys.argv[1] == '16'):
+
+        config_1['dense'] = True
+
+        config_1['attention'] = 'general'
+        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+        config_1['attention'] = 'concat'
+        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+        config_1['attention'] = 'ACL_simple'
+        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+    # Exp17: PaPer + GRU + embedding + attention(win)
+    if (sys.argv[1] == '17'):
+
+        config_1['attention'] = 'general'
+        attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+        config_1['attention'] = 'concat'
+        attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+        config_1['attention'] = 'ACL_simple'
+        attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr.run()
+
+
+    # Exp18: PaPer + PATTR + GRU + embedding + attention(win)
+    if (sys.argv[1] == '18'):
         config_1['dense'] = True
 
         config_1['attention'] = 'general'
         attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 
-
-
-    # Exp16: PaPer + LSTM + embedding + attention(win)
-    if (sys.argv[1] == '16'):
-
-        config_1['attention'] = 'general'
-        attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-    # Exp17: PaPer + LSTM + embedding + attention(win)
-    if (sys.argv[1] == '17'):
-        config_1['attention'] = 'noname_share'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'noname_no_share'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'general'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
         config_1['attention'] = 'concat'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
 
         config_1['attention'] = 'ACL_simple'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'ACL_with_W'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-    # Exp18: PaPer + LSTM + embedding + attention(win)
-    if (sys.argv[1] == '18'):
-        config_1['dense'] = True
-
-        config_1['attention'] = 'general'
-        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'concat'
-        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run()
-
-        config_1['attention'] = 'ACL_simple'
-        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
+        attention_rnn_ptattr = AttentionRNNPtAttr(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()

@@ -81,6 +81,8 @@ class AttentionRNN:
 
 
     def embedding_layer(self, main_input):
+        num_words = len(self.word_index) + 2
+
         # Pre-trained act-vec layer
         if self.embed is 'ACT2VEC_EMBED':
             (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
@@ -196,7 +198,7 @@ class AttentionRNN:
         adam = Adam(lr=0.01, decay=1e-6)
         # compile model
         model.compile(loss='categorical_crossentropy',
-                 optimizer=adam,
+                 optimizer='adam',
                  metrics=['accuracy'], sample_weight_mode="temporal")
                  # metrics=['accuracy', 'top_3_categorical_accuracy'], sample_weight_mode="temporal")
 
@@ -233,7 +235,7 @@ class AttentionRNN:
         # adam = 'adam'
         # compile model
         model.compile(loss='categorical_crossentropy',
-                 optimizer='adam',
+                 optimizer=adam,
                  metrics=['accuracy'], sample_weight_mode="temporal")
                  # metrics=['accuracy', 'top_3_categorical_accuracy'], sample_weight_mode="temporal")
         model.load_weights(model_path)

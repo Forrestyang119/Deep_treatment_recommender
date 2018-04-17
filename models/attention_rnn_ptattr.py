@@ -81,6 +81,8 @@ class AttentionRNNPtAttr:
 
 
     def embedding_layer(self, main_input):
+        num_words = len(self.word_index) + 2
+
         if self.embed is 'ACT2VEC_EMBED':
               (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
 
@@ -109,8 +111,23 @@ class AttentionRNNPtAttr:
         main_input = Input(shape = (self.maxlen,))              # input should be a tensor
         
         # embedding layer
-        embedding_output = self.embedding_layer(main_input)
+        # embedding_output = self.embedding_layer(main_input)
 
+        if self.embed is 'ACT2VEC_EMBED':
+            (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
+
+            embed_matrix = act2vec(X, self.word_index, self.embedding_dim, self.act2vec_win)
+            embedding_output = Embedding(self.num_words, self.embedding_dim, weights=[embed_matrix], 
+                                      input_length=self.maxlen, mask_zero=True)(main_input)
+        elif self.embed is 'EMBED':
+            embedding_output = Embedding(self.num_words, self.embedding_dim,
+                                       input_length=self.maxlen, mask_zero=True)(main_input)
+        elif self.embed is 'HOT':
+            self.X_train = vec(self.X_train, self.word_index, 1, 0, self.maxlen)
+            self.X_val = vec(self.X_val, self.word_index, 1, 0, self.maxlen) 
+            self.X_test = vec(self.X_test, self.word_index, 1, 0, self.maxlen) 
+            main_input = Input(shape=(self.maxlen, num_words)) 
+            embedding_output = main_input
         # merge layer
         lengths = [len(v) for v in self.attr_dict.values()]
         pt_attr = Input(shape=(self.maxlen, lengths[0])) 
@@ -141,7 +158,23 @@ class AttentionRNNPtAttr:
         main_input = Input(shape = (self.maxlen,))              # input should be a tensor
         
         # embedding layer
-        embedding_output = self.embedding_layer(main_input)
+        # embedding_output = self.embedding_layer(main_input)
+
+        if self.embed is 'ACT2VEC_EMBED':
+            (_, X, _), _, _, _, _= load_data(train_path = self.vec_path, dic_path = self.dic_path, config = self.config, valid_portion= 0, shuffle=False)
+
+            embed_matrix = act2vec(X, self.word_index, self.embedding_dim, self.act2vec_win)
+            embedding_output = Embedding(self.num_words, self.embedding_dim, weights=[embed_matrix], 
+                                      input_length=self.maxlen, mask_zero=True)(main_input)
+        elif self.embed is 'EMBED':
+            embedding_output = Embedding(self.num_words, self.embedding_dim,
+                                       input_length=self.maxlen, mask_zero=True)(main_input)
+        elif self.embed is 'HOT':
+            self.X_train = vec(self.X_train, self.word_index, 1, 0, self.maxlen)
+            self.X_val = vec(self.X_val, self.word_index, 1, 0, self.maxlen) 
+            self.X_test = vec(self.X_test, self.word_index, 1, 0, self.maxlen) 
+            main_input = Input(shape=(self.maxlen, num_words)) 
+            embedding_output = main_input
 
         # merge layer
         lengths = [len(v) for v in self.attr_dict.values()]
