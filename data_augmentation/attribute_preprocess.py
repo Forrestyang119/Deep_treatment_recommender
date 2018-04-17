@@ -4,7 +4,6 @@ import glob
 import os
 import pandas as pd
 
-# dataset_path = '122AustinDictionary_09.18.csv'
 dataset_path = 'Files_synthetic/rnn_input_1000.csv'
 
 def build_dict():
