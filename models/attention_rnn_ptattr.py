@@ -22,7 +22,7 @@ from datetime import datetime
 import os
 from other.tools import *
 import sys
-from data_loader import * 
+from other.data_loader import * 
 from other.custom_layers import *
 
 class AttentionRNNPtAttr:

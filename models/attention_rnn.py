@@ -22,7 +22,7 @@ from datetime import datetime
 import os
 from other.tools import *
 import sys
-from data_loader import * 
+from other.data_loader import * 
 from keras import backend as K
 from other.custom_layers import *
 class AttentionRNN:

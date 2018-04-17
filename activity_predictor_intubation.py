@@ -18,7 +18,7 @@ config_1 = {
     'embedding_dim' : 17,
     'maxlen'        : 20,
     'batch_size'    : 20,
-    'epochs'        : 1,
+    'epochs'        : 10000,
     'act2vec_win'   : 5,
     'dense'         : False,     # decide whether compress the patient attributes
     'dense_size'    : 3,         # decide the compressed patient attribute set size
@@ -44,7 +44,7 @@ attr_path = 'data_intubation/attrs_dict.pkl'
 # attr_path = 'data_synthetic_intubation/attrs_dict.pkl'
 
 if __name__ == '__main__':
-    config_1['random_seed'] = int(sys.argv[2])
+    # config_1['random_seed'] = int(sys.argv[2])
     np.random.seed(config_1['random_seed'])
 
     # Exp1: one-hot LSTM
@@ -184,15 +184,3 @@ if __name__ == '__main__':
         config_1['attention'] = 'ACL_simple'
         attention_rnn_ptattr = AttentionRNNPtAttr(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
         attention_rnn_ptattr.run()
-
-    # Exp19: pre-trained model
-    if (sys.argv[1] == '19'):
-        config_1['attention'] = 'general'
-        attention_rnn_ptattr = AttentionRNN(model = 'LSTM',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run_from_pretrained('res_models/pretrain_5000_intubation_LSTM.h5')
-
-    # Exp20: pre-trained model
-    if (sys.argv[1] == '20'):
-        config_1['attention'] = 'general'
-        attention_rnn_ptattr = AttentionRNN(model = 'GRU',  embed = 'EMBED', train_path = train_path, attr_path = attr_path, dic_path = dic_path, vec_path = vec_path, config = config_1)
-        attention_rnn_ptattr.run_from_pretrained('res_models/pretrain_5000_intubation_LSTM.h5')

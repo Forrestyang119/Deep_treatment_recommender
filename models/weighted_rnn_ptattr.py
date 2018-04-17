@@ -18,7 +18,7 @@ import gensim
 from datetime import datetime
 import os
 import sys
-from data_loader import * 
+from other.data_loader import * 
 from other.tools import *
 
 class WeightedRNNPtAttr:
