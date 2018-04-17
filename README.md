@@ -20,6 +20,7 @@ More synthetic patient records can be generated using the synthetic patient reco
 
 
 ## Synthetic Patient Record Generator
+![alt text](Docs/Picture2.png "Fig.2")
 As described in the paper, there are two steps to generate the synthetic patient records:
 1. Align the activity traces to acquire the alignment matrix
 2. Fit the alignment matrix to the Multivariate Bernoulli distribution and generate random samples
