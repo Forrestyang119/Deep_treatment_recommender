@@ -330,6 +330,14 @@ def pima_iter(namat, method, repo=repo, verbose=True):
         print(str(namat[-1]['score']))
     return namat
 
+# find consensus sequence
+def find_cs(amat, act_dict):
+    col_act = np.amax(amat, axis = 0)
+    cs = []
+    for i in range(col_act.shape[0]):
+        cs.append(act_dict[col_act[i]])
+    return cs
+
 # main function
 def main():
     # EXAMPLE USAGE: CONVERGE TWICE
@@ -373,9 +381,25 @@ def main():
             break
 
     # RESULT
-    amat = namat[-1]['amat'][:,:,0] 
-    print(amat)
-    np.savetxt('alignment.csv', amat, delimiter=',', fmt='%d')
+    amat = namat[-1]['amat'][:,:,0]
+
+    # FIND consensus sequence
+    consensus_sequence = find_cs(amat, act_dict)
+
+    # REPLACE the values in alignment matrix
+    df_amat = pd.DataFrame(amat)
+    for key in act_dict:
+    	df_amat.replace(key, act_dict[key], inplace = True) 
+
+    print(df_amat)
+
+    # save results
+    df_amat.to_csv('alignment.csv')
+    import csv
+    with open('consensus_sequence.csv', 'w') as csvfile:
+    	cw = csv.writer(csvfile, delimiter = ',')
+    	for act in consensus_sequence:
+    		cw.writerow([act, 0])
 
 if __name__ == "__main__":
     main()
